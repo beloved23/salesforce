@@ -1,0 +1,50 @@
+
+image: php:latest
+# Composer stores all downloaded packages in the vendor/ directory.
+# Do not use the following if the vendor/ directory is committed to
+# your git repository.
+
+before_script:
+# Install composer dependencies
+- apt-get update -yqq
+- curl -sS https://getcomposer.org/installer | php
+- php composer.phar --no-plugins --no-scripts install
+
+services:
+  - mysql:latest
+
+variables:
+  MYSQL_DATABASE: homestead
+  MYSQL_ROOT_PASSWORD: secret
+  DB_HOST: mysql
+  DB_USERNAME: root
+
+stages:
+  - test
+  - deploy
+
+unit_test:
+  stage: test
+  script:
+    - cp .env.example .env
+    - composer install
+    - php artisan key:generate
+    - php artisan migrate
+    - php vendor/bin/phpunit --coverage-text --colors=never
+
+deploy_production:
+  stage: deploy
+  script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+
+    - ~/.composer/vendor/bin/envoy run deploy
+  environment:
+    name: production
+    url: http://192.168.1.1
+  when: manual
+  only:
+    - develop

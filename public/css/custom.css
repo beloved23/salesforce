@@ -1,0 +1,16 @@
+.cursor-pointer {
+    cursor: pointer;
+}
+.width-full{
+ /* width:80%;
+ display: block;    */
+ background-color: #fff;
+ border: 1px solid #e5ebec;
+ border-radius: 0;
+ box-shadow: none;
+ color: #565656;
+ height: 38px;
+ width: 70% !important;
+ padding: 7px 12px !important;
+ transition: all 300ms linear 0s
+}
